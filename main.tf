@@ -69,10 +69,46 @@ resource "aws_route_table" "private_route" {
   tags = var.privat_route_table_tags
 }
 
+
+
+
 resource "aws_route_table_association" "private" {
    count = length(var.private_subnet_cidr) 
   subnet_id      = element(aws_subnet.private[*].id,count.index)
   route_table_id = aws_route_table.private_route.id
+}
+
+# [project-name]-database-1a/1b
+resource "aws_subnet" "database" {
+  #count = length(var.database_subnet_cidr) #count=2
+  count = length(var.database_subnet_cidr)
+  vpc_id = aws_vpc.main.id
+  cidr_block = var.database_subnet_cidr[count.index]
+  availability_zone = local.azs[count.index]
+
+  tags = merge(
+    var.database_subnet_tags,
+    {
+        Name = "${var.project_name}-database-${local.azs_labels[count.index]}"
+    }
+  )
+}
+
+resource "aws_route_table" "database" {
+    vpc_id = aws_vpc.main.id
+        cidr_block = "0.0.0.0/0"
+     tags = merge(
+        var.database_route_table_tags,
+        {
+            Name = "${var.project_name}-database"
+        }
+    )
+}
+
+resource "aws_route_table_association" "database" {
+  count = length(var.database_subnet_cidr) # this will fetch the length of private subnets
+  subnet_id      = element(aws_subnet.database[*].id, count.index) # this will iterate and each time it gives single element
+  route_table_id = aws_route_table.database.id
 }
 
 resource "aws_eip" "nat" {
@@ -84,6 +120,8 @@ resource "aws_eip" "nat" {
     }
   )
 }
+
+
 
 resource "aws_nat_gateway" "gw" {
   allocation_id = aws_eip.nat.id

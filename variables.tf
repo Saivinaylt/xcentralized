@@ -79,3 +79,26 @@ variable "privat_route_table_tags" {
    
   
 }
+
+variable "database_subnet_cidr" {
+  type = list
+  validation {
+        condition = (
+            length(var.database_subnet_cidr) == 2
+        )
+        error_message = "CIDR list must be 2"
+    }
+}
+
+variable "database_subnet_tags" {
+  type = map
+  default = {}
+}
+
+variable "database_route_table_tags" {
+  type = map
+  default = {}
+}
+
+
+
