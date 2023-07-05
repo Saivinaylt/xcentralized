@@ -89,14 +89,14 @@ resource "aws_subnet" "database" {
   tags = merge(
     var.database_subnet_tags,
     {
-        Name = "${var.project_name}-database-${local.azs_labels[count.index]}"
+        Name = "${var.project_name}-database-${local.last_element[count.index]}"
     }
   )
 }
 
 resource "aws_route_table" "database" {
     vpc_id = aws_vpc.main.id
-        cidr_block = "0.0.0.0/0"
+    
      tags = merge(
         var.database_route_table_tags,
         {
